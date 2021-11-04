@@ -1,89 +1,129 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container my-3">
-    <h2 class="border-bottom py-2">{{ question.subject }}</h2>
-    <div class="card my-3">
+<div class="container my-2">
+    <h3 class="border-bottom py-2">{{ question.subject }}</h3>
+    <h6 class="small text-muted text-end">{{ question.user.username }}[{{ question.create_time|datetime }}]</h6>
+    <div class="card my-2">
         <div class="card-body">
-            <div class="card-text" style="white-space: pre-line;">{{ question.content }}</div>
-            <div class="d-flex justify-content-end">
-                <h6><span class="badge bg-secondary">{{ question.user.username }}</span></h6>
-            </div>
-            <div class="d-flex justify-content-end">
-                <h6><span class="badge bg-secondary">{{ question.create_time|datetime }}</span></h6>
-            </div>
-            {% if g.user == question.user %}
-            <div class="my-3">
-                <a href="{{ url_for('question.modify', question_id=question.id) }}" class="btn btn-sm btn-outline-secondary">수정</a>
-                <a href="#" class="delete btn btn-sm btn-outline-secondary" data-uri="{{ url_for('question.delete', question_id=question.id) }}">삭제</a>
-            </div>
-            {% endif %}
-            <!-- 질문 댓글 START -->
-            {% if question.comment_set|length > 0 %}
-            <div class="mt-3">
-            {% for comment in question.comment_set %}
-                <div class="comment py-2 text-muted">
+            <div class="card-text" style="white-space: pre-line;">{{ question.content }} </div>
+        </div>
+    </div>
+    {% if g.user == question.user %}
+    <div class="btn-toolbar justify-content-end">
+        <div class="btn-group btn-group-sm">
+            <a href="{{ url_for('question.modify', question_id=question.id) }}" class="btn btn-outline-secondary">수정</a>
+            <a href="#" class="delete btn btn-outline-secondary" data-uri="{{ url_for('question.delete', question_id=question.id) }}">삭제</a>
+        </div>
+    </div>
+    {% endif %}
+    {% if question.comment_set|length > 0 %}
+    <div class="mt-3">
+    {% for comment in question.comment_set %}
+        <div id="collap1" class="collapse show mulcol{{comment.id}}">
+            <div class="card mt-1" >
+                <div class="card-body">
                     <span style="white-space: pre-line;">{{ comment.content }}</span>
-                    <span>-{{ comment.user.username }}, {{ comment.create_date|datetime }}</span>
-                    {% if comment.modify_date %}
-                    <span>(수정:{{ comment.modify_date|datetime }})</span>
-                    {% endif %}
+                </div>
+                <div class="card-footer text-end comment">
+                    {{ comment.user.username }}[{{ comment.modify_date|datetime }}]
                     {% if g.user == comment.user %}
-                    <a href="{{ url_for('comment.modify_question', comment_id=comment.id) }}" class="small">수정</a>
+                    <a href=".mulcol{{comment.id}}" role="button" data-bs-toggle="collapse" class="small">수정</a>
                     <a href="#" class="small delete" data-uri="{{ url_for('comment.delete_question', comment_id=comment.id) }}">삭제</a>
-                    {% endif %}
+                {% endif %}
                 </div>
-            {% endfor %}
             </div>
-            {% endif %}
-            <div>
-                <a href="{{ url_for('comment.create_question', question_id=question.id) }}" class="small"><small>댓글 추가 ..</small></a>
-            </div>
-            <!-- 질문 댓글 END   -->
         </div>
-    </div>
-    <h5 class="border-bottom my-3 py-2">{{ question.answer_set|length }}개의 답변이 있습니다.</h5>
-    {% for answer in question.answer_set %}
-    <div class="card my-3">
-        <div class="card-body">
-            <div class="card-text" style="white-space: pre-line;">{{ answer.content }}</div>
-            <div class="d-flex justify-content-end">
-                <h6><span class="badge bg-success">{{ answer.user.username }}</span></h6>
-            </div>
-            <div class="d-flex justify-content-end">
-                <h6><span class="badge bg-success">{{ answer.create_date|datetime }}</span></h6>
-            </div>
-            {% if g.user == answer.user %}
-            <div class="my-3">
-                <a href="{{ url_for('answer.modify', answer_id=answer.id) }}" class="btn btn-sm btn-outline-secondary">수정</a>
-                <a href="{{ url_for('answer.delete', answer_id=answer.id) }}" class="delete btn btn-sm btn-outline-secondary">삭제</a>
-            </div>
-            {% endif %}
-            <!-- 답변 댓글 START -->
-            {% if answer.comment_set|length > 0 %}
-            <div class="mt-3">
-            {% for comment in answer.comment_set %}
-                <div class="comment py-2 text-muted">
-                    <span style="white-space: pre-line;">{{ comment.content }}</span>
-                    <span>-{{ comment.user.username }}, {{ comment.create_date|datetime }}</span>
-                    {% if comment.modify_date %}
-                    <span>(수정:{{ comment.modify_date|datetime }})</span>
-                    {% endif %}
-                    {% if g.user == comment.user %}
-                    <a href="{{ url_for('comment.modify_answer', comment_id=comment.id) }}" class="small">수정</a>
-                    <a href="#" class="small delete" data-uri="{{ url_for('comment.delete_answer', comment_id=comment.id) }}">삭제</a>
-                    {% endif %}
+        <div class="collapse mulcol{{comment.id}}" id="comment">
+            <form class="my-2" action="{{ url_for('comment.modify_question', comment_id=comment.id) }}" method="post">
+                {{ form.csrf_token }}        
+                <div class="mb-2">
+                    <textarea {% if not g.user %}disabled{% endif %} name="content" id="content" class="form-control" rows="2">{{ comment.content }}</textarea>
                 </div>
-            {% endfor %}
-            </div>
-            {% endif %}
-            <div>
-                <a href="{{ url_for('comment.create_answer', answer_id=answer.id) }}" class="small"><small>댓글 추가 ..</small></a>
-            </div>
-            <!-- 답변 댓글 END   -->
+                <div class="text-end">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">등록</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target=".mulcol{{comment.id}}">취소</button>
+                </div>
+            </form>
         </div>
-    </div>
     {% endfor %}
-    <form action="{{ url_for('answer.create', question_id=question.id) }}" method="post" class=""my-3>
+    </div>
+    {% endif %}
+    <form class="my-2" action="{{ url_for('comment.create_question', question_id=question.id) }}" method="post">
+        {{ form.csrf_token }}        
+        <div class="mb-2">
+            <textarea {% if not g.user %}disabled{% endif %} name="content" id="content" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="text-end">
+            <button type="submit" class="btn btn-sm btn-outline-primary">댓글등록</button>
+        </div>
+    </form>
+    {% if question.answer_set|length > 0 %}
+    <div class="my-2">
+        <a class="" data-bs-toggle="collapse" href="#answers">{{ question.answer_set|length }}개의 답변</a>이 있습니다.
+    </div>
+    {% endif %}
+    <div class="collapse" id="answers">
+        {% for answer in question.answer_set %}
+        <div class="small text-muted text-end">{{ answer.user.username }}[{{ answer.create_date|datetime }}]</div>
+        <div class="card my-2">
+            <div class="card-body">
+                <div class="card-text" style="white-space: pre-line;">{{ answer.content }}</div>
+            </div>
+        </div>
+        {% if g.user == answer.user %}
+        <div class="btn-toolbar justify-content-end">
+            <div class="btn-group btn-group-sm">
+                <a href="{{ url_for('answer.modify', answer_id=answer.id) }}" class="btn btn-outline-secondary">수정</a>
+                <a href="#" class="delete btn btn-outline-secondary" data-uri="{{ url_for('answer.delete', answer_id=answer.id) }}">삭제</a>
+            </div>
+        </div>
+        {% endif %}
+        <!-- 답변 댓글 START -->
+        {% if answer.comment_set|length > 0 %}
+        <div class="mt-3">
+        {% for comment in answer.comment_set %}
+            <div class="collapse show answercol{{comment.id}}">
+                <div class="card mt-1" >
+                    <div class="card-body">
+                        <span style="white-space: pre-line;">{{ comment.content }}</span>
+                    </div>
+                    <div class="card-footer text-end comment">
+                        {{ comment.user.username }}[{{ comment.modify_date|datetime }}]
+                        {% if g.user == comment.user %}
+                        <a href=".answercol{{comment.id}}" role="button" data-bs-toggle="collapse" class="small">수정</a>
+                        <a href="#" class="small delete" data-uri="{{ url_for('comment.delete_answer', comment_id=comment.id) }}">삭제</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="collapse answercol{{comment.id}}">
+                <form class="my-2" action="{{ url_for('comment.modify_answer', comment_id=comment.id) }}" method="post">
+                    {{ form.csrf_token }}        
+                    <div class="mb-2">
+                        <textarea {% if not g.user %}disabled{% endif %} name="content" id="content" class="form-control" rows="2">{{ comment.content }}</textarea>
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-sm btn-outline-primary">등록</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target=".answercol{{comment.id}}">취소</button>
+                    </div>
+                </form>
+            </div>
+        {% endfor %}
+        </div>
+        {% endif %}
+        <form class="my-2" action="{{ url_for('comment.create_answer', answer_id=answer.id) }}" method="post">
+            {{ form.csrf_token }}        
+            <div class="mb-2">
+                <textarea {% if not g.user %}disabled{% endif %} name="content" id="content" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="text-end">
+                <button type="submit" class="btn btn-sm btn-outline-primary">댓글등록</button>
+            </div>
+        </form>
+        <!-- 답변 댓글 END   -->
+        {% endfor %}
+    </div>
+    <form action="{{ url_for('answer.create', question_id=question.id) }}" method="post" class="my-3">
         {{ form.csrf_token }}
         {% for field, errors in form.errors.items() %}
         <div class="alert alert-danger" role="alert">
@@ -91,9 +131,11 @@
         </div>
         {% endfor %}
         <div class="mb-2">
-            <textarea {% if not g.user %}disabled{% endif %} name="content" id="content" class="form-control" rows="10"></textarea>
+            <textarea {% if not g.user %}disabled{% endif %} name="content" id="content" class="form-control" rows="5"></textarea>
         </div>
-        <input type="submit" value="답변등록" class="btn btn-primary btn-sm">
+        <div class="text-end">
+            <input type="submit" value="답변등록" class="btn btn-primary btn-sm">
+        </div>
     </form>
 </div>
 {% endblock %}
@@ -104,6 +146,10 @@ $(document).ready(function() {
         if(confirm("정말로 삭제하시겠습니까?")) {
             location.href = $(this).data("uri");
         }
+    });
+    $("#btn1").click(function() {
+        $("#collap1").collapse('toggle');
+        $("#comment").collapse('toggle');
     });
 });
 </script>

@@ -17,7 +17,7 @@ def create_question(question_id):
     form = CommentForm()
     question = Question.query.get_or_404(question_id)
     if request.method == "POST" and form.validate_on_submit():
-        comment = Comment(user=g.user, content=form.content.data, create_date=datetime.now(), question=question)
+        comment = Comment(user=g.user, content=form.content.data, create_date=datetime.now(), question=question, modify_date=datetime.now())
         db.session.add(comment)
         db.session.commit()
         return redirect(url_for("question.detail", question_id=question_id))
@@ -62,7 +62,7 @@ def create_answer(answer_id):
     form = CommentForm()
     answer = Answer.query.get_or_404(answer_id)
     if request.method == "POST" and form.validate_on_submit():
-        comment = Comment(user=g.user, content=form.content.data, create_date=datetime.now(), answer=answer)
+        comment = Comment(user=g.user, content=form.content.data, create_date=datetime.now(), answer=answer, modify_date=datetime.now())
         db.session.add(comment)
         db.session.commit()
         return redirect(url_for("question.detail", question_id=answer.question_id))
